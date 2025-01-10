@@ -25,6 +25,7 @@ namespace infini
     CPU = 1
   };
 
+// 基类
   class RuntimeObj : public std::enable_shared_from_this<RuntimeObj>
   {
   protected:
@@ -49,6 +50,7 @@ namespace infini
     virtual string toString() const = 0;
   };
 
+// 继承Runtime类，并传递Device::CPU作为参数（关联的设备）
   class NativeCpuRuntimeObj : public RuntimeObj
   {
   public:
@@ -62,7 +64,7 @@ namespace infini
     }
     void dealloc(void *ptr) override;
     void run(const Graph &graph) const override;
-    void *alloc(size_t size) override;
+    void *alloc(size_t size) override; // 重写对应的虚函数，代码在对应的cpp文件中
     string toString() const override;
   };
 

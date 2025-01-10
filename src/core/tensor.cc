@@ -5,49 +5,51 @@
 #include <cstring>
 #include <numeric>
 
-namespace infini {
+namespace infini
+{
 
-    TensorObj::TensorObj(Shape shape_, DataType dtype, Runtime runtime)
-        : dim(shape_.size()), dtype(dtype), runtime(runtime), shape(std::move(shape_)),
-          _size(std::accumulate(shape.begin(), shape.end(), 1, std::multiplies{})) {}
+TensorObj::TensorObj(Shape shape_, DataType dtype, Runtime runtime)
+    : dim(shape_.size()), dtype(dtype), runtime(runtime), shape(std::move(shape_)),
+      _size(std::accumulate(shape.begin(), shape.end(), 1, std::multiplies{}))
+{
+}
 
-    string TensorObj::toString() const
-    {
-        // Convert data pointer to string
-        std::stringstream ss;
-        if (data != nullptr)
-            ss << data->getPtr<void *>();
-        else
-            ss << "nullptr data";
-        string ret = "Tensor " + std::to_string(guid) + ", Fuid " +
-                     std::to_string(fuid) + ", shape " + vecToString(shape) +
-                     ", dtype " + dtype.toString() + ", " + runtime->toString() +
-                     ", " + ss.str() + "\n";
-        vector<UidBaseType> targetGuids;
-        for (const auto &op : targets)
-            targetGuids.emplace_back(op.lock()->getGuid());
-        if (auto o = source.lock())
-            ret += ", source " + std::to_string(o->getGuid());
-        else
-            ret += ", source None";
-        ret += ", targets " + vecToString(targetGuids);
-        return ret;
-    }
+string TensorObj::toString() const
+{
+    // Convert data pointer to string
+    std::stringstream ss;
+    if (data != nullptr)
+        ss << data->getPtr<void *>();
+    else
+        ss << "nullptr data";
+    string ret = "Tensor " + std::to_string(guid) + ", Fuid " + std::to_string(fuid) + ", shape " + vecToString(shape) +
+                 ", dtype " + dtype.toString() + ", " + runtime->toString() + ", " + ss.str() + "\n";
+    vector<UidBaseType> targetGuids;
+    for (const auto &op : targets)
+        targetGuids.emplace_back(op.lock()->getGuid());
+    if (auto o = source.lock())
+        ret += ", source " + std::to_string(o->getGuid());
+    else
+        ret += ", source None";
+    ret += ", targets " + vecToString(targetGuids);
+    return ret;
+}
 
-void TensorObj::setShape(Shape shape_) {
+void TensorObj::setShape(Shape shape_)
+{
     shape = shape_;
-    size_t size = std::accumulate(shape.begin(), shape.end(), 1,
-                                  [](auto acc, auto x) { return acc * x; });
+    size_t size = std::accumulate(shape.begin(), shape.end(), 1, [](auto acc, auto x) { return acc * x; });
     _size = size;
 }
 
-void TensorObj::printData() const {
+void TensorObj::printData() const
+{
     IT_ASSERT(data != nullptr);
     if (!runtime->isCpu())
         IT_TODO_HALT();
 
-#define TRY_PRINT(N)                                                           \
-    if (dtype == DataType(N))                                                  \
+#define TRY_PRINT(N)                                                                                                   \
+    if (dtype == DataType(N))                                                                                          \
         std::cout << dataToString<DT<N>::t>() << std::endl;
 
     TRY_PRINT(0)           // fmt: new line
@@ -70,7 +72,8 @@ void TensorObj::printData() const {
 #undef TRY_PRINT
 }
 
-bool TensorObj::equalData(const Tensor &rhs, double relativeError) const {
+bool TensorObj::equalData(const Tensor &rhs, double relativeError) const
+{
     IT_ASSERT(data != nullptr);
     IT_ASSERT(rhs->data != nullptr);
     IT_ASSERT(getDType() == rhs->getDType());
@@ -79,11 +82,9 @@ bool TensorObj::equalData(const Tensor &rhs, double relativeError) const {
     if (size() != rhs->size())
         return false;
 
-#define TEST_EQUAL(N)                                                          \
-    if (dtype == DataType(N))                                                  \
-        return equalDataImpl(getRawDataPtr<DT<N>::t *>(),                      \
-                             rhs->getRawDataPtr<DT<N>::t *>(), size(),         \
-                             relativeError);
+#define TEST_EQUAL(N)                                                                                                  \
+    if (dtype == DataType(N))                                                                                          \
+        return equalDataImpl(getRawDataPtr<DT<N>::t *>(), rhs->getRawDataPtr<DT<N>::t *>(), size(), relativeError);
 
     TEST_EQUAL(0)           // fmt: new line
     else TEST_EQUAL(1)      //
@@ -105,12 +106,15 @@ bool TensorObj::equalData(const Tensor &rhs, double relativeError) const {
 #undef TEST_EQUAL
 }
 
-void TensorObj::setData(
-    const std::function<void(void *, size_t, DataType)> &generator) const {
+void TensorObj::setData(const std::function<void(void *, size_t, DataType)> &generator) const
+{
     IT_ASSERT(data != nullptr);
     generator(getRawDataPtr<void *>(), size(), dtype);
 }
 
-void TensorObj::setDataBlob(const Blob &blob) { this->data = blob; }
+void TensorObj::setDataBlob(const Blob &blob)
+{
+    this->data = blob;
+}
 
 }; // namespace infini

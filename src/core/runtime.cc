@@ -27,6 +27,7 @@ namespace infini
         return free(ptr);
     }
 
+// alloc 分配了一段内存，返回指向这段内存的指针，allocator 会用这个指针来管理内存
     void *NativeCpuRuntimeObj::alloc(size_t size)
     {
         return calloc((size + sizeof(uint64_t) - 1) / sizeof(uint64_t),
